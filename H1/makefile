@@ -17,7 +17,9 @@ clean :
 	$(CC) 2.cpp -o 2
 
 run_1:
+	echo "# Executing Exercise 1:"
 	./1
 
 run_2:
+	echo "# Executing Exercise 2:"
 	./2
