@@ -18,9 +18,9 @@ public:
    double operator()(const double x) const;
 };
 
-Poly operator+(const Poly& left, const Poly& right) const;
-Poly operator-(const Poly& left, const Poly& right) const;
-Poly operator*(const Poly& left, const Poly& right) const;
-Poly operator/(const Poly& dividee, const Poly& divisor) const;
-Poly operator%(const Poly& dividee, const Poly& divisor) const;
+Poly operator+(const Poly& left, const Poly& right);
+Poly operator-(const Poly& left, const Poly& right);
+Poly operator*(const Poly& left, const Poly& right);
+Poly operator/(const Poly& dividee, const Poly& divisor);
+Poly operator%(const Poly& dividee, const Poly& divisor);
 ostream& operator<<(ostream& os, const Poly& poly);
