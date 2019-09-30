@@ -12,3 +12,8 @@ h2: $(OBJ) $(DEPS)
 
 clean:
 	rm -f *.o h2
+
+run: 
+	make clean
+	make
+	valgrind ./h2

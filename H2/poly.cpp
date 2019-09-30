@@ -15,7 +15,7 @@ void Poly::prune() {
 
 void Poly::set_coeffs(const vector<double>& coeff_list) {
   for(vector<int>::size_type i = 0; i < coeff_list.size(); i++){
-    coeffs[i] = coeff_list[i];
+    this->coeffs.push_back(coeff_list[i]);
   }
 }
 
@@ -28,96 +28,206 @@ Poly Poly::derivative() const {
   vector<double> coeffs = this->coeffs;
   vector<double> der_coeffs;
   Poly der;
-  int size = coeffs.size();
+  double temp = 0.0;
 
-  for(vector<int>::size_type i = 0; i < size; i++){
-    
-    der_coeffs[i] == coeffs[i] * i;
-
+  for(vector<int>::size_type i = 0; i < coeffs.size(); i++){
+    temp = coeffs.at(i) * i;
+    der_coeffs.push_back(temp);
   }
 
+  for(vector<int>::size_type i = 0; i < der_coeffs.size()-1; i++){
+    der_coeffs[i] = der_coeffs[i+1];
+  }
+
+  der_coeffs.erase (der_coeffs.begin());
   der.set_coeffs(der_coeffs);
-
+  der.prune();
   return der;
-
 }
 
 double Poly::operator()(double x) const {
+
   vector<double> coeffs = this->coeffs;
   int size = coeffs.size();
   double res = 0.0;
-  for(vector<int>::size_type i; i < size ; i++){
-    res += (coeffs.at(i) * x);
+  for(vector<int>::size_type i = 0; i < size ; i++){
+    res += (coeffs.at(i) * pow(x, i));
   }
   return res;
 }
 
 
 Poly operator+(const Poly& left, const Poly& right){
+
   vector<double> coeffs;
   Poly res;
   int sL = left.get_coeffs().size();
   int sR = right.get_coeffs().size();
-  int size = (sL >= sR) ? sR : sL;
-  for(vector<int>::size_type i; i < size ; i++){
-    coeffs[i] = left.get_coeffs()[i] + right.get_coeffs()[i];
+  int sizeMax, sizeMin;
+  if(sL > sR){
+
+    sizeMax = sL;
+    sizeMin = sR;
+
+  }else{
+
+    sizeMax = sR;
+    sizeMin = sL;
+
   }
+
+  for(vector<int>::size_type i = 0; i < sizeMax; i++){
+    if(i < sizeMin){
+      coeffs.push_back(left.get_coeffs().at(i) + right.get_coeffs().at(i));
+    }else{
+      if(sL == sizeMax){
+        coeffs.push_back(left.get_coeffs().at(i));
+      }else{
+        coeffs.push_back(right.get_coeffs().at(i));
+      }
+    }
+  }
+
   res.set_coeffs(coeffs);
+  res.prune();
   return res;
 }
 
 Poly operator-(const Poly& left, const Poly& right){
+
   vector<double> coeffs;
   Poly res;
   int sL = left.get_coeffs().size();
   int sR = right.get_coeffs().size();
-  int size = (sL >= sR) ? sR : sL;
-  for(vector<int>::size_type i; i < size; i++){
-    coeffs[i] = left.get_coeffs()[i] - right.get_coeffs()[i];
+  int sizeMax, sizeMin;
+  if(sL > sR){
+
+    sizeMax = sL;
+    sizeMin = sR;
+
+  }else{
+
+    sizeMax = sR;
+    sizeMin = sL;
+
   }
+
+  for(vector<int>::size_type i = 0; i < sizeMax; i++){
+    if(i < sizeMin){
+      coeffs.push_back(left.get_coeffs().at(i) - right.get_coeffs().at(i));
+    }else{
+      if(sL == sizeMax){
+        coeffs.push_back(left.get_coeffs().at(i));
+      }else{
+        coeffs.push_back(right.get_coeffs().at(i));
+      }
+    }
+  }
+
   res.set_coeffs(coeffs);
+  res.prune();
   return res;
 }
 
 Poly operator*(const Poly& left, const Poly& right){
+
   vector<double> coeffs;
   Poly res;
-  for(vector<int>::size_type i; i < left.get_coeffs().size(); i++){
-    coeffs[i] = left.get_coeffs()[i] * right.get_coeffs()[i];
+  int new_size = (left.get_coeffs().size()) + (right.get_coeffs().size()) - 1;
+
+  for (vector<int>::size_type i = 0; i < new_size; i++){
+
+      coeffs.push_back(0.0);
+
   }
+
+  for (vector<int>::size_type i = 0; i < left.get_coeffs().size(); i++){ 
+
+    for (vector<int>::size_type j = 0; j < right.get_coeffs().size(); j++){
+
+      coeffs[i+j] += left.get_coeffs().at(i) * right.get_coeffs().at(j);
+
+    }
+
+  } 
+
   res.set_coeffs(coeffs);
   return res;
+
 }
 
-Poly operator/(const Poly& dividee, const Poly& divisor){
-  vector<double> coeffs;
-  Poly res;
-  for(vector<int>::size_type i; i < dividee.get_coeffs().size(); i++){
-    coeffs[i] = dividee.get_coeffs()[i] / divisor.get_coeffs()[i];
+Poly operator/(const Poly& dividee, const Poly& divisor){ // function n / d:
+
+  vector<double> quotient; 
+  vector<double> rest;
+  double temp = 0.0;
+  Poly aux;
+
+  rest = dividee.get_coeffs(); // r ← n
+  
+  for(vector<int>::size_type i = 0; i < dividee.get_coeffs().size(); i++){ // q ← 0
+    quotient.push_back(0);
   }
-  res.set_coeffs(coeffs);
-  return res;
+
+  // At each step n = d × q + r
+
+  while((rest.size() != 0) && (rest.size() >= divisor.get_coeffs().size() ) ){
+    temp = rest.at(rest.size()-1) / divisor.get_coeffs().at(divisor.get_coeffs().size()-1);     // Divide the leading terms
+    quotient[quotient.size()-1] + temp;
+    for(vector<int>::size_type i = 0; i < rest.size(); i++){
+      rest[rest.size()-(1 + i)] - (temp * divisor.get_coeffs().at(divisor.get_coeffs().size()-1));
+    }
+    //rest = rest − temp * divisor;
+  }
+
+  aux.set_coeffs(rest);
+  return aux;
+
 }
 
 Poly operator%(const Poly& dividee, const Poly& divisor){
-  vector<double> coeffs;
-  Poly res;
-  for(vector<int>::size_type i; i < dividee.get_coeffs().size(); i++){
-    coeffs[i] = dividee.get_coeffs()[i] + divisor.get_coeffs()[i];
+
+  vector<double> quotient; 
+  vector<double> rest;
+  double temp = 0.0;
+  Poly aux;
+
+  rest = dividee.get_coeffs(); // r ← n
+  
+  for(vector<int>::size_type i = 0; i < dividee.get_coeffs().size(); i++){ // q ← 0
+    quotient.push_back(0);
   }
-  res.set_coeffs(coeffs);
-  return res;
+
+  // At each step n = d × q + r
+
+  while((rest.size() != 0) && (rest.size() >= divisor.get_coeffs().size() ) ){
+    temp = rest.at(rest.size()-1) / divisor.get_coeffs().at(divisor.get_coeffs().size()-1);     // Divide the leading terms
+    quotient[quotient.size()-1] + temp;
+    for(vector<int>::size_type i = 0; i < rest.size(); i++){
+      rest[rest.size()-(1 + i)] - (temp * divisor.get_coeffs().at(divisor.get_coeffs().size()-1));
+    }
+    //rest = rest − temp * divisor;
+  }
+
+  aux.set_coeffs(rest);
+  return aux;
 }
 
 ostream& operator<<(ostream& os, const Poly& poly) {
+
   vector<double> coeffs = poly.get_coeffs();
   int size = coeffs.size();
-  string str = "";
-  string x = "x";
-  for(vector<int>::size_type i = 0; i < size-1; i++){
-    str = str + to_string(coeffs[i]) + "^" + to_string(i);
+  string str = " ";
+  for(vector<int>::size_type i = size-1; i >= 1; i--){
+    if(coeffs.at(i) == 0) continue;
+    str = str + "(" + to_string(coeffs.at(i)) + "x^" + to_string(i) + ")";
+    if(i != 1){
+      str = str + " + ";
+    }
   } 
-  str = str + to_string(coeffs[size]);
+  if(coeffs.at(0) != 0){
+    str = str + " + " + to_string(coeffs.at(0));
+  }
   os << str;
   return os;
 }
